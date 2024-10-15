@@ -93,9 +93,9 @@ double opt3001_get_data(I2C_Handle *i2c) {
 		    uint8_t expn = rxBuffer[0] >> 4;
 		    uint16_t msb = (rxBuffer[0] & 0b00001111) << 8;
 		    uint16_t figure1 = msb + rxBuffer[1];
-		    lux = 0.01 * (2**expn) * figure1;
-	        char lux_string[16];
-		    sprintf(lux_string, "%.3f", lux);
+		    lux = 0.01 * pow(2, expn) * figure1;
+	        char lux_string[12];
+		    snprintf(lux_string, sizeof(lux_string), "%.3f", lux);
 	        System_printf(lux_string);
 	        System_flush();
 		    // JTKJ: Here the conversion from register value to lux

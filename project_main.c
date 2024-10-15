@@ -1,6 +1,6 @@
 /* C Standard library */
 #include <stdio.h>
-
+#include <string.h>
 /* XDCtools files */
 #include <xdc/std.h>
 #include <xdc/runtime/System.h>
@@ -32,6 +32,7 @@ enum state programState = WAITING;
 // JTKJ: Teht�v� 3. Valoisuuden globaali muuttuja
 // JTKJ: Exercise 3. Global variable for ambient light
 double ambientLight = -1000.0;
+
 static PIN_Handle buttonHandle;
 static PIN_State buttonState;
 static PIN_Handle ledHandle;
@@ -52,7 +53,7 @@ PIN_Config ledConfig[] = {
 void buttonFxn(PIN_Handle handle, PIN_Id pinId) {
     uint_t pinValue = PIN_getOutputValue(Board_LED0);
     pinValue = !pinValue;
-    PIN_setOutputValue(ledHandle, Board_LED0, pinValue)
+    PIN_setOutputValue(ledHandle, Board_LED0, pinValue);
     // JTKJ: Teht�v� 1. Vilkuta jompaa kumpaa ledi�
     // JTKJ: Exercise 1. Blink either led of the device
 }
@@ -84,8 +85,8 @@ Void uartTaskFxn(UArg arg0, UArg arg1) {
         // JTKJ: Teht�v� 3. Kun tila on oikea, tulosta sensoridata merkkijonossa debug-ikkunaan
         //       Muista tilamuutos
         if (programState == DATA_READY){
-            char ambientLight_str[16];
-            sprintf(ambientLight_str, "%.3f", ambientLight);
+            char ambientLight_str[12];
+            snprintf(ambientLight_str, sizeof(ambientLight_str), "%.3f\n", ambientLight);
             System_printf(ambientLight_str);
             programState = WAITING;
         // JTKJ: Exercise 3. Print out sensor data as string to debug window if the state is correct
@@ -93,12 +94,12 @@ Void uartTaskFxn(UArg arg0, UArg arg1) {
 
         // JTKJ: Teht�v� 4. L�het� sama merkkijono UARTilla
         // JTKJ: Exercise 4. Send the same sensor data string with UART
-            char forUart[strlen(ambientLight_str)+2];
-            sprintf(forUart, "%s\n\r", ambientLight_str);
+            char forUart[strlen(ambientLight_str)];
+            snprintf(forUart, sizeof(forUart), "%s\n\r", ambientLight_str);
             UART_write(uart, forUart, strlen(forUart));
         // Just for sanity check for exercise, you can comment this out
-        System_printf("uartTask\n");
-        System_flush();
+            System_printf("uartTask\n");
+            System_flush();
         }
         // Once per second, you can modify this
         Task_sleep(100000 / Clock_tickPeriod);
@@ -120,8 +121,8 @@ Void sensorTaskFxn(UArg arg0, UArg arg1) {
 
     // JTKJ: Teht�v� 2. Avaa i2c-v�yl� taskin k�ytt��n
     // JTKJ: Exercise 2. Open the i2c bus
-    Task_sleep(100000/Clock_tickPeriod);
-    opt3001_setup();
+    Task_sleep(100000 / Clock_tickPeriod);
+    opt3001_setup(&i2c);
     // JTKJ: Teht�v� 2. Alusta sensorin OPT3001 setup-funktiolla
     //       Laita enne funktiokutsua eteen 100ms viive (Task_sleep)
     // JTKJ: Exercise 2. Setup the OPT3001 sensor for use
@@ -129,7 +130,7 @@ Void sensorTaskFxn(UArg arg0, UArg arg1) {
 
     while (1) {
         if (programState == WAITING){
-            ambientLight = opt3001_get_data();
+            ambientLight = opt3001_get_data(&i2c);
         // JTKJ: Teht�v� 2. Lue sensorilta dataa ja tulosta se Debug-ikkunaan merkkijonona
         // JTKJ: Exercise 2. Read sensor data and print it to the Debug window as string
             programState = DATA_READY;
