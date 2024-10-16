@@ -6,10 +6,11 @@
  *
  *  Datakirja: http://www.ti.com/lit/ds/symlink/opt3001.pdf
  */
-
+//#pragma once
+#include <inttypes.h>
 #include <string.h>
 #include <math.h>
-
+#include <stdio.h>
 #include <xdc/runtime/System.h>
 
 #include "sensors/opt3001.h"
@@ -70,7 +71,7 @@ double opt3001_get_data(I2C_Handle *i2c) {
 
     // JTKJ: Tehtävä 2. Muokkaa funktiota niin että se palauttaa mittausarvon lukseina
     // JTKJ: Exercise 2. Complete this function to return the measured value as lux
-
+    uint16_t mask_lux = 0b0000111100000000;
 	double lux = -1.0; // return value of the function
     // JTKJ: Find out the correct buffer sizes (n) with this sensor?
     // uint8_t txBuffer[ n ];
@@ -90,12 +91,13 @@ double opt3001_get_data(I2C_Handle *i2c) {
 	if (opt3001_get_status(i2c) & OPT3001_DATA_READY) {
 
 		if (I2C_transfer(*i2c, &i2cMessage)) {
-		    uint8_t expn = rxBuffer[0] >> 4;
-		    uint16_t msb = (rxBuffer[0] & 0b00001111) << 8;
-		    uint16_t figure1 = msb + rxBuffer[1];
-		    lux = 0.01 * pow(2, expn) * figure1;
-	        char lux_string[12];
-		    snprintf(lux_string, sizeof(lux_string), "%.3f", lux);
+		    uint8_t expn1 = rxBuffer[0] >> 4;
+		    uint16_t msb = (rxBuffer[0] << 8) & mask_lux;
+		    uint16_t lsb = rxBuffer[1];
+		    uint16_t factor = msb | lsb;
+		    lux = 0.01 * pow(2, expn1) * factor;
+	        char lux_string[10];
+		    snprintf(lux_string, sizeof(lux_string), "%.1f\n", lux);
 	        System_printf(lux_string);
 	        System_flush();
 		    // JTKJ: Here the conversion from register value to lux

@@ -85,16 +85,17 @@ Void uartTaskFxn(UArg arg0, UArg arg1) {
         // JTKJ: Teht�v� 3. Kun tila on oikea, tulosta sensoridata merkkijonossa debug-ikkunaan
         //       Muista tilamuutos
         if (programState == DATA_READY){
-            char ambientLight_str[12];
-            snprintf(ambientLight_str, sizeof(ambientLight_str), "%.3f\n", ambientLight);
+            char ambientLight_str[10];
+            snprintf(ambientLight_str, sizeof(ambientLight_str), "%.1f\n", ambientLight);
             System_printf(ambientLight_str);
+            System_flush();
             programState = WAITING;
         // JTKJ: Exercise 3. Print out sensor data as string to debug window if the state is correct
         //       Remember to modify state
 
         // JTKJ: Teht�v� 4. L�het� sama merkkijono UARTilla
         // JTKJ: Exercise 4. Send the same sensor data string with UART
-            char forUart[strlen(ambientLight_str)];
+            char forUart[10];
             snprintf(forUart, sizeof(forUart), "%s\n\r", ambientLight_str);
             UART_write(uart, forUart, strlen(forUart));
         // Just for sanity check for exercise, you can comment this out
